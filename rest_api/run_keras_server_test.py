@@ -70,9 +70,11 @@ def convert_to_df(label_json):
     
     return label_df
 
+
 # Push results to DB
 def write_df_to_db(df, table_name, conn_string = "postgres://dbmaster:dbpa$$w0rd!@w210postgres01.c8siy60gz3hg.us-east-1.rds.amazonaws.com:5432/w210results"):
     engine = create_engine(conn_string)
+    engine.execute("DROP TABLE IF EXISTS {}".format(table_name))
     df.to_sql(table_name, con=engine)
 
 
