@@ -76,6 +76,26 @@ def write_df_to_db(df, table_name, conn_string = "postgres://dbmaster:dbpa$$w0rd
     engine = create_engine(conn_string)
     engine.execute("DROP TABLE IF EXISTS {}".format(table_name))
     df.to_sql(table_name, con=engine)
+    
+# Determine which folder to move the predicted image to
+def assign_new_path(labels, threshold, label_path, wtf_path):
+    probs = [label["probability"] for label in labels]
+    max_prob, max_id = max(probs), np.argmax(probs)
+    pred = labels[max_id]["label"]
+    if max_prob >= threshold:
+        return os.path.join(label_path, pred)
+    else:
+        return wtf_path
+
+# Move a file to a new folder 
+def move_to_new_path(old_file_path, new_file_path):
+    # Get the new file path's directory
+    new_folder = os.path.dirname(new_file_path)
+    # If the new directory does not exist create it
+    if not os.path.exists(new_folder):
+        os.makedirs(new_folder)
+    # Update the file path to the new file path 
+    os.rename(old_file_path, new_file_path)
 
 
 @app.route("/helloWorld", methods=["GET"])
@@ -145,10 +165,17 @@ def predict_folder():
         payload = json.loads(flask.request.json)
         if payload.get("path"):
             # ensure an image was properly uploaded to our endpoint
-            path = payload.get("path")
+            path = os.path.normpath(payload.get("path"))
+            label_path = os.path.dirname(path)
+            wtf_path = os.path.dirname(path)
+            
             data["userId"] = payload.get("userId")
             for file in os.listdir(path):
+                # Note the point when the script started
                 pred_start = time.time()
+                
+                file_path = os.path.join(path, file)
+                
                 image_id = "{:0.6f}".format((datetime.utcnow() - datetime(1970,1,1)).total_seconds()).replace('.', '_')
                 d = {'fileName':file, 'imageId':image_id}
                 d['fileSuccess'] = False
@@ -174,6 +201,11 @@ def predict_folder():
                 d["predictTime"] = time.time() - pred_start
                 
                 data["predictions"].append(d)
+                
+                # Move the file to the correct folder
+                new_path = assign_new_path(r, 0.9, label_path, wtf_path)
+                new_file_path = os.path.join(new_path, file)
+                move_to_new_path(file_path, new_file_path)
 
             # indicate that the request was a success
             data["requestSuccess"] = True
@@ -187,6 +219,7 @@ def predict_folder():
     # If specified convert data to dataframe and push to database
     df = convert_to_df(data)
     
+    # Write output to the database
     write_df_to_db(df, 'test_upload')
             
     # return the data dictionary as a JSON response
