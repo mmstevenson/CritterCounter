@@ -20,7 +20,7 @@ import io
 from datetime import datetime, timedelta
 import time
 import os
-import json 
+import json
 
 # initialize our Flask application and the Keras model
 app = flask.Flask(__name__)
@@ -67,7 +67,7 @@ def convert_to_df(label_json):
 
     label_df = label_df.merge(pred_df, on='imageId', how='left').drop('labels', axis=1)
     label_df['userId'] = label_json['userId']
-    
+
     return label_df
 
 
@@ -76,7 +76,10 @@ def write_df_to_db(df, table_name, conn_string = "postgres://dbmaster:dbpa$$w0rd
     engine = create_engine(conn_string)
     engine.execute("DROP TABLE IF EXISTS {}".format(table_name))
     df.to_sql(table_name, con=engine)
-    
+    # Adding a primary key so the webserver can query the results via sqlalchemy
+    with engine.connect() as con:
+        con.execute("ALTER TABLE {} ADD PRIMARY KEY (`index`);".format(table_name))
+
 # Determine which folder to move the predicted image to
 def assign_new_path(labels, threshold, label_path, wtf_path):
     probs = [label["probability"] for label in labels]
@@ -87,14 +90,14 @@ def assign_new_path(labels, threshold, label_path, wtf_path):
     else:
         return wtf_path
 
-# Move a file to a new folder 
+# Move a file to a new folder
 def move_to_new_path(old_file_path, new_file_path):
     # Get the new file path's directory
     new_folder = os.path.dirname(new_file_path)
     # If the new directory does not exist create it
     if not os.path.exists(new_folder):
         os.makedirs(new_folder)
-    # Update the file path to the new file path 
+    # Update the file path to the new file path
     os.rename(old_file_path, new_file_path)
 
 
@@ -139,15 +142,15 @@ def predict():
 
             # Send classification time
             data["predict_time"] = time.time() - start
-    
+
     # JSONify the response data
     response = flask.jsonify(data)
-    
+
     # If specified convert data to dataframe and push to database
     df = convert_to_df(data)
-    
+
     write_df_to_db(df, 'test_upload')
-    
+
     # Return the json response data
     return flask.jsonify(data)
 
@@ -166,20 +169,21 @@ def predict_folder():
         if payload.get("path"):
             # ensure an image was properly uploaded to our endpoint
             path = os.path.normpath(payload.get("path"))
-            label_path = os.path.dirname(path)
-            wtf_path = os.path.dirname(path)
-            
+            base_path = os.path.dirname(path)
+            label_path = os.path.join(base_path,'classified')
+            wtf_path = os.path.dirname(base_path,'wtf')
+
             data["userId"] = payload.get("userId")
             for file in os.listdir(path):
                 # Note the point when the script started
                 pred_start = time.time()
-                
+
                 file_path = os.path.join(path, file)
-                
+
                 image_id = "{:0.6f}".format((datetime.utcnow() - datetime(1970,1,1)).total_seconds()).replace('.', '_')
                 d = {'fileName':file, 'imageId':image_id}
                 d['fileSuccess'] = False
-                
+
                 # read the image in PIL format
                 image = Image.open(os.path.join(path,file))
 
@@ -194,14 +198,14 @@ def predict_folder():
 
                 # loop over the results and add them to the list of
                 # returned predictions
-                r = [{"id":ID, "label": label, "probability": float(prob)} for (ID, label, prob) in results[0]] 
+                r = [{"id":ID, "label": label, "probability": float(prob)} for (ID, label, prob) in results[0]]
                 d["labels"] = r
                 d["procDatetime"] = datetime.utcnow()
                 d["fileSuccess"] = True
                 d["predictTime"] = time.time() - pred_start
-                
+
                 data["predictions"].append(d)
-                
+
                 # Move the file to the correct folder
                 new_path = assign_new_path(r, 0.9, label_path, wtf_path)
                 new_file_path = os.path.join(new_path, file)
@@ -212,16 +216,16 @@ def predict_folder():
 
             # Send classification time
             data["responseTime"] = time.time() - start
-    
+
     # JSONify the response data
     response = flask.jsonify(data)
-    
+
     # If specified convert data to dataframe and push to database
     df = convert_to_df(data)
-    
+
     # Write output to the database
     write_df_to_db(df, 'test_upload')
-            
+
     # return the data dictionary as a JSON response
     return flask.jsonify(data)
 
