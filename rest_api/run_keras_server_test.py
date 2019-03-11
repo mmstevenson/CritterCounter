@@ -78,7 +78,7 @@ def write_df_to_db(df, table_name, conn_string = "postgres://dbmaster:dbpa$$w0rd
     df.to_sql(table_name, con=engine)
     # Adding a primary key so the webserver can query the results via sqlalchemy
     with engine.connect() as con:
-        con.execute("ALTER TABLE {} ADD PRIMARY KEY (`index`);".format(table_name))
+        con.execute("ALTER TABLE {} ADD PRIMARY KEY (index);".format(table_name))
 
 # Determine which folder to move the predicted image to
 def assign_new_path(labels, threshold, label_path, wtf_path):
