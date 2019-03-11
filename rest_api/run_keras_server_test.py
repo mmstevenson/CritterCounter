@@ -171,7 +171,7 @@ def predict_folder():
             path = os.path.normpath(payload.get("path"))
             base_path = os.path.dirname(path)
             label_path = os.path.join(base_path,'classified')
-            wtf_path = os.path.dirname(base_path,'wtf')
+            wtf_path = os.path.join(base_path,'wtf')
 
             data["userId"] = payload.get("userId")
             for file in os.listdir(path):
