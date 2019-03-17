@@ -206,6 +206,8 @@ def predict_folder():
 
                 data["predictions"].append(d)
 
+                print(d['fileName'],d['predictTime'])
+
                 # Move the file to the correct folder
                 new_path = assign_new_path(r, 0.9, label_path, wtf_path)
                 new_file_path = os.path.join(new_path, file)
