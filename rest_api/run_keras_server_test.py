@@ -21,6 +21,7 @@ from datetime import datetime, timedelta
 import time
 import os
 import json
+import sys
 
 # initialize our Flask application and the Keras model
 app = flask.Flask(__name__)
@@ -206,7 +207,7 @@ def predict_folder():
 
                 data["predictions"].append(d)
 
-                print(d['fileName'],d['predictTime'])
+                print(d['fileName'] + ': ' + d['predictTime'], file=sys.stderr)
 
                 # Move the file to the correct folder
                 new_path = assign_new_path(r, 0.9, label_path, wtf_path)
