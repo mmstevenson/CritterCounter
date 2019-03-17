@@ -207,7 +207,7 @@ def predict_folder():
 
                 data["predictions"].append(d)
 
-                print(str(d['fileName']) + ': ' + str(d['predictTime']), file=sys.stdout)
+                sys.stdout.write(str(d['fileName']) + ': ' + str(d['predictTime']))
 
                 # Move the file to the correct folder
                 new_path = assign_new_path(r, 0.9, label_path, wtf_path)
