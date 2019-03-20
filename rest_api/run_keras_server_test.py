@@ -233,9 +233,9 @@ def predict_folder():
     df = convert_to_df(data)
 
     # Write output to the database
-    sys.stdout.write('Writing dataframe to Postgres database')
-    sys.stdout.flush()
-    write_df_to_db(df, 'test_upload')
+    # sys.stdout.write('Writing dataframe to Postgres database')
+    # sys.stdout.flush()
+    # write_df_to_db(df, 'test_upload')
 
     # return the data dictionary as a JSON response
     return flask.jsonify(data)
