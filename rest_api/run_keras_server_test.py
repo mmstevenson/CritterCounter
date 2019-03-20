@@ -81,6 +81,9 @@ def write_df_to_db(df, table_name, conn_string = "postgres://dbmaster:dbpa$$w0rd
     with engine.connect() as con:
         con.execute("ALTER TABLE {} ADD PRIMARY KEY (index);".format(table_name))
 
+    sys.stdout.write('Postgres upload complete')
+    sys.stdout.flush()
+
 # Determine which folder to move the predicted image to
 def assign_new_path(labels, threshold, label_path, wtf_path):
     probs = [label["probability"] for label in labels]
@@ -225,9 +228,13 @@ def predict_folder():
     response = flask.jsonify(data)
 
     # If specified convert data to dataframe and push to database
+    sys.stdout.write('Converting data to dataframe')
+    sys.stdout.flush()
     df = convert_to_df(data)
 
     # Write output to the database
+    sys.stdout.write('Writing dataframe to Postgres database')
+    sys.stdout.flush()
     write_df_to_db(df, 'test_upload')
 
     # return the data dictionary as a JSON response
