@@ -28,7 +28,6 @@ app = flask.Flask(__name__)
 model = None
 
 conn_string = "postgres://dbmaster:dbpa$$w0rd!@w210postgres01.c8siy60gz3hg.us-east-1.rds.amazonaws.com:5432/w210results"
-engine = create_engine(conn_string)
 
 def load_model():
     # load the pre-trained Keras model (here we are using a model
@@ -77,19 +76,24 @@ def convert_to_df(label_json):
 
 # Push results to DB
 def write_df_to_db(df, table_name, engine=engine):
-    # engine = create_engine(conn_string)
-    # engine.execute("DROP TABLE IF EXISTS {}".format(table_name))
+    engine = create_engine(conn_string)
+    connection = engine.connect()
+    connection.execute("DROP TABLE IF EXISTS {}".format(table_name))
+    connection.close()
+
+    sys.stdout.write('Table deleted.')
+    sys.stdout.flush()
+
     df.to_sql(table_name, con=engine, if_exists='replace', index=True)
 
-    sys.stdout.write('Successfully created table')
+    sys.stdout.write('Successfully created table.')
     sys.stdout.flush()
 
     # Adding a primary key so the webserver can query the results via sqlalchemy
-    with engine.connect() as con:
-        con.execute("ALTER TABLE {} ADD PRIMARY KEY (index);".format(table_name))
-        con.close()
+    connection.execute("ALTER TABLE {} ADD PRIMARY KEY (index);".format(table_name))
+    connection.close()
 
-    sys.stdout.write('Primary key added')
+    sys.stdout.write('Primary key added.')
     sys.stdout.flush()
 
 # Determine which folder to move the predicted image to
