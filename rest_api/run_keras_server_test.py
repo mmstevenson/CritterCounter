@@ -90,6 +90,7 @@ def write_df_to_db(df, table_name):
     sys.stdout.flush()
 
     # Adding a primary key so the webserver can query the results via sqlalchemy
+    connection = engine.connect()
     connection.execute("ALTER TABLE {} ADD PRIMARY KEY (index);".format(table_name))
     connection.close()
 
