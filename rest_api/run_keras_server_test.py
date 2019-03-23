@@ -77,12 +77,16 @@ def write_df_to_db(df, table_name, conn_string = "postgres://dbmaster:dbpa$$w0rd
     engine = create_engine(conn_string)
     engine.execute("DROP TABLE IF EXISTS {}".format(table_name))
     df.to_sql(table_name, con=engine)
+
+    sys.stdout.write('Successfully created table')
+    sys.stdout.flush()
+
     # Adding a primary key so the webserver can query the results via sqlalchemy
     with engine.connect() as con:
         con.execute("ALTER TABLE {} ADD PRIMARY KEY (index);".format(table_name))
         con.close()
 
-    sys.stdout.write('Postgres upload complete')
+    sys.stdout.write('Primary key added')
     sys.stdout.flush()
 
 # Determine which folder to move the predicted image to
