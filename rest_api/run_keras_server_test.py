@@ -80,6 +80,7 @@ def write_df_to_db(df, table_name, conn_string = "postgres://dbmaster:dbpa$$w0rd
     # Adding a primary key so the webserver can query the results via sqlalchemy
     with engine.connect() as con:
         con.execute("ALTER TABLE {} ADD PRIMARY KEY (index);".format(table_name))
+        con.close()
 
     sys.stdout.write('Postgres upload complete')
     sys.stdout.flush()
@@ -232,10 +233,10 @@ def predict_folder():
     sys.stdout.flush()
     df = convert_to_df(data)
 
-    # Write output to the database
-    # sys.stdout.write('Writing dataframe to Postgres database')
-    # sys.stdout.flush()
-    # write_df_to_db(df, 'test_upload')
+    Write output to the database
+    sys.stdout.write('Writing dataframe to Postgres database')
+    sys.stdout.flush()
+    write_df_to_db(df, 'test_upload')
 
     # return the data dictionary as a JSON response
     return flask.jsonify(data)
