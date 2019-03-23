@@ -27,6 +27,9 @@ import sys
 app = flask.Flask(__name__)
 model = None
 
+conn_string = "postgres://dbmaster:dbpa$$w0rd!@w210postgres01.c8siy60gz3hg.us-east-1.rds.amazonaws.com:5432/w210results"
+engine = create_engine(conn_string)
+
 def load_model():
     # load the pre-trained Keras model (here we are using a model
     # pre-trained on ImageNet and provided by Keras, but you can
@@ -73,10 +76,10 @@ def convert_to_df(label_json):
 
 
 # Push results to DB
-def write_df_to_db(df, table_name, conn_string = "postgres://dbmaster:dbpa$$w0rd!@w210postgres01.c8siy60gz3hg.us-east-1.rds.amazonaws.com:5432/w210results"):
-    engine = create_engine(conn_string)
-    engine.execute("DROP TABLE IF EXISTS {}".format(table_name))
-    df.to_sql(table_name, con=engine)
+def write_df_to_db(df, table_name):
+    # engine = create_engine(conn_string)
+    # engine.execute("DROP TABLE IF EXISTS {}".format(table_name))
+    df.to_sql(table_name, con=engine, if_exists='replace', index=True)
 
     sys.stdout.write('Successfully created table')
     sys.stdout.flush()
@@ -237,10 +240,10 @@ def predict_folder():
     sys.stdout.flush()
     df = convert_to_df(data)
 
-    # Write output to the database
-    sys.stdout.write('Writing dataframe to Postgres database')
-    sys.stdout.flush()
-    write_df_to_db(df, 'test_upload')
+    # # Write output to the database
+    # sys.stdout.write('Writing dataframe to Postgres database')
+    # sys.stdout.flush()
+    # write_df_to_db(df, 'test_upload')
 
     # return the data dictionary as a JSON response
     return flask.jsonify(data)
