@@ -93,6 +93,8 @@ def write_df_to_db(df, table_name):
     connection.execute("ALTER TABLE {} ADD PRIMARY KEY (index);".format(table_name))
     connection.close()
 
+    engine.dispose()
+
     sys.stdout.write('Primary key added.')
     sys.stdout.flush()
 
