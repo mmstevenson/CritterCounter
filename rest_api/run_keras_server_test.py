@@ -76,8 +76,15 @@ def convert_to_df(label_json):
 
 # Push results to DB
 def write_df_to_db(df, table_name):
+    sys.stdout.write('DB function called.')
+    sys.stdout.flush()
+
     engine = create_engine(conn_string)
     connection = engine.connect()
+
+    sys.stdout.write('Engine created.')
+    sys.stdout.flush()
+
     connection.execute("DROP TABLE IF EXISTS {}".format(table_name))
     connection.close()
 
