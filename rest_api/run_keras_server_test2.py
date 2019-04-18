@@ -12,6 +12,7 @@ from keras.preprocessing.image import img_to_array
 from keras.applications import imagenet_utils
 from keras.models import Sequential
 from keras.layers import Dropout, Flatten, Dense
+from keras.preprocessing.image import ImageDataGenerator
 import pandas as pd
 from sqlalchemy import create_engine
 import tensorflow as tf
@@ -91,6 +92,8 @@ def convert_to_df(label_json):
 
     label_df = label_df.merge(pred_df, on='imageId', how='left').drop('labels', axis=1)
     label_df['userId'] = label_json['userId']
+    
+    label_df = label_df.reset_index(drop=False)
 
     return label_df
 
@@ -146,6 +149,31 @@ def move_to_new_path(old_file_path, new_file_path):
         os.makedirs(new_folder)
     # Update the file path to the new file path
     os.rename(old_file_path, new_file_path)
+    
+def decode_predictions(predictions):
+    id_map = {
+    0: 'american_black_bear',
+    1: 'bobcat',
+    2: 'cougar',
+    3: 'coyote',
+    4: 'domestic_cow',
+    5: 'domestic_dog',
+    6: 'elk',
+    7: 'gray_fox',
+    8: 'moose',
+    9: 'mule_deer',
+    10: 'red_deer',
+    11: 'red_fox',
+    12: 'vehicle',
+    13: 'white_tailed_deer',
+    14: 'wild_turkey',
+    15: 'wolf'
+}
+    result = []
+    for pred in predictions:
+        result.append([(i, id_map[i], pred[i]) for i in pred.argsort()[-5:]])
+
+    return result
 
 
 @app.route("/helloWorld", methods=["GET"])
@@ -221,46 +249,54 @@ def predict_folder():
             wtf_path = os.path.join(base_path,'wtf')
 
             data["userId"] = payload.get("userId")
-            for file in os.listdir(path):
-                # Note the point when the script started
-                pred_start = time.time()
+            file_df = pd.DataFrame({'file':os.listdir(path)})
+            file_df['abs_file_path'] = file_df['file'].apply(lambda x: os.path.join(path, x))
+            file_df['category_name'] = 'unknown'
 
-                file_path = os.path.join(path, file)
+            n_samples = len(file_df)
 
-                image_id = "{:0.6f}".format((datetime.utcnow() - datetime(1970,1,1)).total_seconds()).replace('.', '_')
-                d = {'fileName':file, 'imageId':image_id}
+            datagen = ImageDataGenerator(rescale=1/255.)
+
+            generator = datagen.flow_from_dataframe(
+                file_df, 
+                directory=path,
+                x_col='file', 
+                y_col ='category_name', 
+                target_size=(224, 224), 
+                batch_size=1, 
+                shuffle=False,
+                class_mode='categorical')
+            
+            pred_start = time.time()
+            
+            with graph.as_default():
+                predictions = model.predict_generator(
+                    generator, 
+                    steps=n_samples,
+                    verbose=True
+                )
+
+            results = decode_predictions(predictions)
+
+            for i in range(len(results)):
+                d = {'fileName':file_df['file'][i]}
+                file_path = os.path.join(path, d['fileName'])
+                d['imageId'] = "{:0.6f}".format((datetime.utcnow() - datetime(1970,1,1)).total_seconds()).replace('.', '_')
                 d['fileSuccess'] = False
-
-                # read the image in PIL format
-                image = Image.open(os.path.join(path,file))
-
-                # preprocess the image and prepare it for classification
-                image = prepare_image(image, target=(224, 224))
-
-                # classify the input image and then initialize the list
-                # of predictions to return to the client
-                with graph.as_default():
-                    preds = model.predict(image)
-                    
-                print(preds)
-                results = imagenet_utils.decode_predictions(preds)
-
-                # loop over the results and add them to the list of
-                # returned predictions
-                r = [{"id":ID, "label": label, "probability": float(prob)} for (ID, label, prob) in results[0]]
+                r = [{"id":str(ID), "label": label, "probability": float(prob)} for (ID, label, prob) in results[i]]
+                d['fileSuccess'] = True
+                d['fileName'] = file_df['file'][i]
+                d['imageId'] = "{:0.6f}".format((datetime.utcnow() - datetime(1970,1,1)).total_seconds()).replace('.', '_')
                 d["labels"] = r
                 d["procDatetime"] = datetime.utcnow()
                 d["fileSuccess"] = True
                 d["predictTime"] = time.time() - pred_start
+                
+                data['predictions'].append(d)
 
-                data["predictions"].append(d)
-
-                sys.stdout.write(str(d['fileName']) + ': ' + str(d['predictTime']))
-                sys.stdout.flush()
-
-                # Move the file to the correct folder
                 new_path = assign_new_path(r, 0.9, label_path, wtf_path)
-                new_file_path = os.path.join(new_path, file)
+                new_file_path = os.path.join(new_path, d['fileName'])
+                print(file_path, new_file_path)
                 move_to_new_path(file_path, new_file_path)
 
             # indicate that the request was a success
