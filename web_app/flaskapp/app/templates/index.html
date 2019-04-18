@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <h2>Welcome to CritterCounter</h2>
+  <!-- <p class="narrative">
+    CritterCounter is an image classification system designed to help ecological
+    researchers and citizen scientists process wildlife camera trap images. CritterCounter
+    automates animal identification, allowing users to spend less time
+    cleaning and organizing their data and more time learning from it.
+  </p> -->
+  <div class="landing">
+    <div class="landing-text">
+      <p class="narrative">
+        Globally, animal species are disappearing at an alarming rate as a result of
+        human activity. As climate variation alters weather patterns, the seasonal
+        ranges of even the healthiest populations are changing rapidly and are currently
+        poorly tracked. The advent of remote camera traps is expanding the ability
+        of researchers to collect data on animal species in many environments, but
+        organizing and processing this volume of data presents its own challenges.
+      </p>
+    </div>
+    <div class="landing-img">
+      <img src="{{ url_for('static', filename='img/snowywolf.jpg') }}" alt="Conservation NW">
+    </div>
+    <div class="landing-img">
+      <img src="{{ url_for('static', filename='img/cougars.png') }}" alt="Conservation NW">
+    </div>
+    <div class="landing-text">
+      <p class="narrative">
+        CritterCounter addresses these challenges by providing an automated image
+        classification tool for processing wildlife camera trap data. Based on a
+        large corpus of labeled camera trap images, our machine vision model
+        identifies the species in every shot.  Designed in consultation with
+        wildlife researchers in Washington State, CritterCounter allows users to
+        spend less time cleaning and organizing their data and more time learning
+        from it.
+      </p>
+    </div>
+  </div>
+  <a href="{{ url_for('upload') }}" class="btn-primary btn">Get Started</a>
+
+{% endblock %}

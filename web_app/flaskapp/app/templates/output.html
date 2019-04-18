@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <h2>Classification Complete</h2>
+  <!-- <p>??? images were classified successfully.</p> -->
+  <!-- <p>??? images were not able to be automatically classified.</p> -->
+  <p>Click here to download tabular results:</p>
+  <a href="{{ url_for('csv_download') }}" target="blank" class="btn-primary btn">CSV</a>
+  <p>Click here to download unclassified images:</p>
+  <a href="{{ url_for('zip_download') }}" target="blank" class="btn-primary btn">ZIP</a>
+  <br>
+  <p class="narrative">If your images contained geotag information, their locations
+    are displayed on the map below. The underlying heat map aggregates species
+    imagery capture events provided by Conservation NW to illustrate concentrations
+    of wildlife activity in the organization's coverage area. </p>
+
+  <div id="map"></div>
+  <div id="chartArea">
+    <p class="chartTitle">User Species</p>
+    <svg class="chart"></svg>
+  </div>
+
+  <h2>Thank you for using CritterCounter!</h2>
+  <!-- <p class="narrative">We encourage users to add their data to our growing database of wildlife sightings,
+    but we understand that confidentiality requirements sometimes prevent this.
+    If you would like to contribute your classification results, please click
+    "Contribute" below. If not, please click "Done."</p> -->
+  <p class="narrative">To ensure confidentiality, clicking "Done" will purge your classification
+    results and images. Don't forget to download your results first!</p>
+  <!-- <a href="{{ url_for('save_data') }}" class="btn-primary btn">Contribute</a> -->
+  <a href="{{ url_for('purge_data') }}" class="btn-primary btn">Done</a>
+
+  <script type="text/javascript">
+    var mapData = {{ data[0] | safe }};
+    var speciesAll = {{ data[1] | safe }};
+    var bears = {{ data[2] | safe }};
+    var elkDeer = {{ data[3] | safe }};
+    var coyotes = {{ data[4] | safe }};
+    var cats = {{ data[5] | safe }};
+    var chartData = {{ data[6] | safe }};
+    console.log(speciesAll);
+  </script>
+  <script src="{{ url_for('static', filename='js/leaflet-heat.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/crittermap.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/d3barchart.js') }}"></script>
+
+{% endblock %}
