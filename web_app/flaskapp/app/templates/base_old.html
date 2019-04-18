@@ -1,0 +1,15 @@
+<html>
+    <head>
+      <title>Creature Counter</title>
+      <link href="{{ url_for('static', filename='styles/style.css') }}" rel="stylesheet">
+      <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    </head>
+    <body>
+        <div>Creature Counter: <a href="{{ url_for('index') }}">Home</a>
+          <a href="{{ url_for('upload') }}">Upload</a>
+          <a href="{{ url_for('logout') }}">Sign Out</a>
+        </div>
+
+        {% block content %}{% endblock %}
+    </body>
+</html>

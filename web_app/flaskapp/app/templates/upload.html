@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <h2>Upload Your Files</h2>
+  <form method="post" enctype="multipart/form-data">
+    <label class=fileContainer>
+      <input type="file" name="file[]" multiple>
+    </label>
+    <input type="submit" id="submit_btn">
+  </form>
+  <div class='waitContainer'>
+    <div class='loader'></div>
+  </div>
+
+  <script type="text/javascript">
+    $("#submit_btn").click(function() {
+      $(".waitContainer").show();
+      console.log('Clicked');
+    });
+  </script>
+{% endblock %}
