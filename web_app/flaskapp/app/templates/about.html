@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <h2>Meet Our Team</h2>
+  <div class="bioWrapper">
+    <div class="bioBox">
+      <h4>Daniel Volk</h4>
+      <p>Daniel Volk is a data scientist with a background in industrial analytics and deep learning.</p>
+    </div>
+    <div class="bioBox">
+      <h4>Matt Stevenson</h4>
+      <p>Matt is an environmental engineer turned data scientist with a passion
+        for digging deep into complicated resource issues.</p>
+    </div>
+    <div class="bioBox">
+      <h4>Kevin Gifford</h4>
+      <p>Kevin is an urban planner and geospatial data analyst who applies data
+        science methods and technologies to tackle public policy and
+        environmental sustainability challenges.</p>
+    </div>
+  </div>
+  <div class="bioFooter">
+    <div class="bioBox">
+      <a href="https://www.linkedin.com/in/volkdaniel/" class="bio" target="_blank">
+        <img src="{{ url_for('static', filename='img/icons/In-2CRev-54px-TM.png') }}"></a>
+    </div>
+    <div class="bioBox">
+      <a href="https://www.linkedin.com/in/mattstevenson2/" class="bio" target="_blank">
+        <img src="{{ url_for('static', filename='img/icons/In-2CRev-54px-TM.png') }}"></a>
+    </div>
+    <div class="bioBox">
+      <a href="https://www.linkedin.com/in/ksgifford/" class="bio" target="_blank">
+        <img src="{{ url_for('static', filename='img/icons/In-2CRev-54px-TM.png') }}"></a>
+    </div>
+  </div>
+
+  <h2>Privacy Policy</h2>
+  <p class="narrative">Photos uploaded to CritterCounter are held on a private S3
+    bucket on Amazon Web Services. Users have the option to purge their data after
+    classification, entirely removing it from CritterCounter databases and file
+    storage. If desired, photos can be shared as open source and to help build out
+    species range maps and add to our classification training data set.</p>
+  <h2>Acknowledgements</h2>
+  <p class="narrative">CritterCounter relies on publicly available datasets to
+    train our machine vision models (<a href="http://lila.science/datasets/nacti">NACTI</a>,
+    <a href="https://beerys.github.io/CaltechCameraTraps/">CalTech</a>), as well
+    as images from consenting users of the website to improve our model over time.
+    <a href="https://www.conservationnw.org/">ConservationNW</a> provided invaluable
+    test data to validate our model’s effectiveness in Washington State and is
+    the source of the copyrighted photos used on this website.</p>
+
+{% endblock %}
